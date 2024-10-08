@@ -3,6 +3,8 @@ from kubernetes import client, config
 # Load kubeconfig
 config.load_kube_config()
 
+api_client = client.ApiClient()
+
 # Create an instance of the API
 api_instance = client.AppsV1Api()
 
@@ -19,26 +21,23 @@ deployment = client.V1Deployment(
             spec=client.V1PodSpec(containers=[
                 client.V1Container(
                     name="flask-container",
-                    image="your-image-name",  # Replace with your Docker image
-                    ports=[client.V1ContainerPort(container_port=5000)],
+                    image="235494808933.dkr.ecr.us-east-1.amazonaws.com/cloudnative-app",  # Replace with your Docker image
+                    ports=[client.V1ContainerPort(container_port=5002)],
                 )
             ]),
         ),
     ),
 )
 
-namespace = 'default'  # Change to your namespace
-deployment_name = 'flask-app'
+namespace = "default"
+deployment_name = "flask-app"
 
-try:
-    # Check if the deployment already exists
-    existing_deployment = api_instance.read_namespaced_deployment(deployment_name, namespace)
-    print(f"Deployment '{deployment_name}' already exists.")
-except client.exceptions.ApiException as e:
-    if e.status == 404:
-        # Deployment does not exist, safe to create
-        api_instance.create_namespaced_deployment(namespace, deployment)
-        print(f"Deployment '{deployment_name}' created.")
-    else:
-        print(f"Error occurred: {e}")
+
+api_instance = client.AppsV1Api(api_client)
+api_instance.patch_namespaced_deployment(
+    name=deployment_name,
+    namespace=namespace,
+    body=deployment
+
+)
 

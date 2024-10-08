@@ -1,28 +1,29 @@
+# Use an official Python runtime as a parent image
 FROM python:3.9-slim-buster
 
-# Install system dependencies needed for psutil and other packages
-RUN apt-get update && apt-get install -y \
+# Install system dependencies needed for building and running the application
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    dirmngr \
+    gnupg \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138 0E98404D386FA1D9 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
     gcc \
     libc-dev \
     python3-dev \
     build-essential \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copy your application code here
+COPY . /app
+
+# Set the working directory
 WORKDIR /app
 
-# Copy the requirements.txt and install Python dependencies
-COPY requirements.txt . 
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Install any Python dependencies
+RUN pip install -r requirements.txt
 
-# Copy the rest of the application
-COPY . .
-
-# Set environment variables
-ENV FLASK_RUN_HOST=0.0.0.0
-
-# Expose port 5002 for the Flask application
-EXPOSE 5000
-
-# Command to run the Flask application
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
-
+# Run the application
+CMD ["python", "app.py"]
